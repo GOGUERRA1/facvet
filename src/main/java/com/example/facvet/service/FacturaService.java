@@ -27,10 +27,25 @@ public class FacturaService {
         return facturaRepo.findById(id);
     }
 
-    public Factura crear(String cliente, List<Long> idsServicios) {
+    public Factura crear(String rutCliente, List<Long> idsServicios) {
         List<ServicioVeterinario> servicios = servicioRepo.findAllById(idsServicios);
-        Factura factura = new Factura(null, cliente, servicios);
+        Factura factura = new Factura(null, rutCliente, servicios);
+        int total = servicios.stream().mapToInt(ServicioVeterinario::getCosto).sum();
+        factura.setTotal(total);
         return facturaRepo.save(factura);
+    }
+
+    public Factura actualizar(Long id, Factura nuevaFactura) {
+        return facturaRepo.findById(id)
+                .map(f -> {
+                    f.setRutCliente(nuevaFactura.getRutCliente());
+                    List<ServicioVeterinario> servicios = servicioRepo.findAllById(nuevaFactura.getIdsServicios());
+                    f.setServicios(servicios);
+                    int total = servicios.stream().mapToInt(ServicioVeterinario::getCosto).sum();
+                    f.setTotal(total);
+                    return facturaRepo.save(f);
+                })
+                .orElse(null);
     }
 
     public Factura pagarFactura(Long id) {

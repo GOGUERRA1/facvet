@@ -3,60 +3,55 @@ package com.example.facvet.controller;
 import com.example.facvet.model.Factura;
 import com.example.facvet.service.FacturaService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/facturas")
-@CrossOrigin(origins = "*")
+@RequestMapping("/facturas")
 public class FacturaController {
 
     @Autowired
     private FacturaService service;
 
     @GetMapping
-    public List<Factura> listarFacturas() {
-        return service.obtenerTodas();
+    public List<Factura> obtenerTodas() {
+        List<Factura> facturas = service.obtenerTodas();
+        for (Factura f : facturas) {
+            Link selfLink = WebMvcLinkBuilder.linkTo(
+                    WebMvcLinkBuilder.methodOn(FacturaController.class).obtenerPorId(f.getId()))
+                    .withSelfRel();
+            f.add(selfLink);
+        }
+        return facturas;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Factura> obtenerPorId(@PathVariable Long id) {
-        return service.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Factura obtenerPorId(@PathVariable Long id) {
+        Factura f = service.obtenerPorId(id).orElse(null);
+        if (f != null) {
+            Link selfLink = WebMvcLinkBuilder.linkTo(
+                    WebMvcLinkBuilder.methodOn(FacturaController.class).obtenerPorId(id))
+                    .withSelfRel();
+            f.add(selfLink);
+        }
+        return f;
     }
 
     @PostMapping
-    public ResponseEntity<Factura> crearFactura(@RequestBody FacturaDTO data) {
-        if (data.getCliente() == null || data.getCliente().isBlank() || data.getIdsServicios() == null || data.getIdsServicios().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        Factura nueva = service.crear(data.getCliente(), data.getIdsServicios());
-        return ResponseEntity.ok(nueva);
+    public Factura crear(@RequestBody Factura factura) {
+        return service.crear(factura.getRutCliente(), factura.getIdsServicios());
     }
 
-    @PutMapping("/{id}/pagar")
-    public ResponseEntity<Factura> pagarFactura(@PathVariable Long id) {
-        Factura pagada = service.pagarFactura(id);
-        return pagada != null ? ResponseEntity.ok(pagada) : ResponseEntity.notFound().build();
+    @PutMapping("/{id}")
+    public Factura actualizar(@PathVariable Long id, @RequestBody Factura factura) {
+        return service.actualizar(id, factura);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public void eliminar(@PathVariable Long id) {
         service.eliminar(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // DTO interno
-    public static class FacturaDTO {
-        private String cliente;
-        private List<Long> idsServicios;
-
-        public String getCliente() { return cliente; }
-        public void setCliente(String cliente) { this.cliente = cliente; }
-        public List<Long> getIdsServicios() { return idsServicios; }
-        public void setIdsServicios(List<Long> idsServicios) { this.idsServicios = idsServicios; }
     }
 }
