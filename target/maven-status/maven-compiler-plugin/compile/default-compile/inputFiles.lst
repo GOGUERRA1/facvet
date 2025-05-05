@@ -1,0 +1,10 @@
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/FacvetApplication.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/controller/FacturaController.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/controller/ServicioVeterinarioController.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/model/Factura.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/model/ServicioVeterinario.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/repository/FacturaRepository.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/repository/ServicioVeterinarioRepository.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/repository/userRepository.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/service/FacturaService.java
+/Users/goguerrag/fullstack1/facvet/src/main/java/com/example/facvet/service/ServicioVeterinarioService.java
