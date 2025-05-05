@@ -1,67 +1,51 @@
-package com.example.facvet.model;
+package com.example.facvet.service;
 
-import org.springframework.hateoas.RepresentationModel;
+import com.example.facvet.model.ServicioVeterinario;
+import com.example.facvet.repository.ServicioVeterinarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import jakarta.persistence.*;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-@Entity
-public class Factura extends RepresentationModel<Factura> {
+@Service
+public class ServicioVeterinarioService {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Autowired
+    private ServicioVeterinarioRepository repository;
 
-    private String cliente;
-
-    @ManyToMany
-    @JoinTable(
-        name = "factura_servicio",
-        joinColumns = @JoinColumn(name = "factura_id"),
-        inverseJoinColumns = @JoinColumn(name = "servicio_id")
-    )
-    private List<ServicioVeterinario> servicios;
-
-    private int total;
-
-    public Factura() {}
-
-    public Factura(Long id, String cliente, List<ServicioVeterinario> servicios) {
-        this.id = id;
-        this.cliente = cliente;
-        this.servicios = servicios;
-        this.total = servicios.stream().mapToInt(ServicioVeterinario::getCosto).sum();
+    public List<ServicioVeterinario> obtenerTodos() {
+        return repository.findAll();
     }
 
-    public Long getId() {
-        return id;
+    public Optional<ServicioVeterinario> obtenerPorId(Long id) {
+        return repository.findById(id);
     }
 
-    public String getCliente() {
-        return cliente;
+    public ServicioVeterinario crear(ServicioVeterinario servicio) {
+        return repository.save(servicio);
     }
 
-    public List<ServicioVeterinario> getServicios() {
-        return servicios;
+    public ServicioVeterinario actualizar(Long id, ServicioVeterinario nuevo) {
+        return repository.findById(id)
+                .map(s -> {
+                    s.setNombre(nuevo.getNombre());
+                    s.setDescripcion(nuevo.getDescripcion());
+                    s.setCosto(nuevo.getCosto());
+                    return repository.save(s);
+                })
+                .orElse(null);
     }
 
-    public int getTotal() {
-        return total;
+    public boolean eliminar(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
-    public void setTotal(int total) {
-        this.total = total;
-    }
-
-    // Agregar estos getters para HATEOAS y controller
-    public String getRutCliente() {
-        return this.cliente;
-    }
-
-    public List<Long> getIdsServicios() {
-        return this.servicios.stream()
-                             .map(ServicioVeterinario::getId)
-                             .collect(Collectors.toList());
+    public ServicioVeterinario guardar(ServicioVeterinario servicio) {
+        return repository.save(servicio);
     }
 }

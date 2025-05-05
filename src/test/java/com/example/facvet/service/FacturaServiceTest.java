@@ -6,47 +6,49 @@ import com.example.facvet.repository.FacturaRepository;
 import com.example.facvet.repository.ServicioVeterinarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import org.mockito.*;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class FacturaServiceTest {
 
-    private FacturaRepository facturaRepo;
-    private ServicioVeterinarioRepository servicioRepo;
+    @InjectMocks
     private FacturaService facturaService;
+
+    @Mock
+    private FacturaRepository facturaRepository;
+
+    @Mock
+    private ServicioVeterinarioRepository servicioVeterinarioRepository;
 
     @BeforeEach
     void setUp() {
-        facturaRepo = mock(FacturaRepository.class);
-        servicioRepo = mock(ServicioVeterinarioRepository.class);
-        facturaService = new FacturaService();
-        facturaService.facturaRepo = facturaRepo;
-        facturaService.servicioRepo = servicioRepo;
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void testCrearFactura() {
-        String cliente = "12345678-9";
-        List<Long> ids = Arrays.asList(1L, 2L);
-        List<ServicioVeterinario> servicios = Arrays.asList(
-                new ServicioVeterinario(1L, "Vacuna", "Gato", 10000),
-                new ServicioVeterinario(2L, "Cirugía", "Perro", 30000)
-        );
+        Factura factura = new Factura();
+        factura.setCliente("Juan");
+        ServicioVeterinario s1 = new ServicioVeterinario(1L, "Consulta", "Revisión general", 10000.0);
+        List<Long> idsServicios = List.of(1L);
+        when(servicioVeterinarioRepository.findById(1L)).thenReturn(Optional.of(s1));
+        when(facturaRepository.save(any(Factura.class))).thenReturn(factura);
 
-        when(servicioRepo.findAllById(ids)).thenReturn(servicios);
-        when(facturaRepo.save(Mockito.any(Factura.class))).thenAnswer(inv -> inv.getArgument(0));
+        Factura result = facturaService.crearFactura("Juan", idsServicios);
 
-        Factura creada = facturaService.crear(cliente, ids);
+        assertNotNull(result);
+        assertEquals("Juan", result.getCliente());
+        assertEquals(1, result.getServicios().size());
+    }
 
-        assertNotNull(creada);
-        assertEquals(cliente, creada.getRutCliente());
-        assertEquals(2, creada.getServicios().size());
-        verify(facturaRepo, times(1)).save(any(Factura.class));
+    @Test
+    void testListarFacturas() {
+        List<Factura> lista = List.of(new Factura());
+        when(facturaRepository.findAll()).thenReturn(lista);
+        List<Factura> result = facturaService.listarFacturas();
+        assertEquals(1, result.size());
     }
 }

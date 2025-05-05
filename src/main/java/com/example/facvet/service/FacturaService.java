@@ -14,51 +14,40 @@ import java.util.Optional;
 public class FacturaService {
 
     @Autowired
-    private FacturaRepository facturaRepo;
+    private FacturaRepository facturaRepository;
 
     @Autowired
-    private ServicioVeterinarioRepository servicioRepo;
+    private ServicioVeterinarioRepository servicioVeterinarioRepository;
 
     public List<Factura> obtenerTodas() {
-        return facturaRepo.findAll();
+        return facturaRepository.findAll();
     }
 
     public Optional<Factura> obtenerPorId(Long id) {
-        return facturaRepo.findById(id);
+        return facturaRepository.findById(id);
     }
 
-    public Factura crear(String rutCliente, List<Long> idsServicios) {
-        List<ServicioVeterinario> servicios = servicioRepo.findAllById(idsServicios);
-        Factura factura = new Factura(null, rutCliente, servicios);
-        int total = servicios.stream().mapToInt(ServicioVeterinario::getCosto).sum();
-        factura.setTotal(total);
-        return facturaRepo.save(factura);
-    }
-
-    public Factura actualizar(Long id, Factura nuevaFactura) {
-        return facturaRepo.findById(id)
-                .map(f -> {
-                    f.setRutCliente(nuevaFactura.getRutCliente());
-                    List<ServicioVeterinario> servicios = servicioRepo.findAllById(nuevaFactura.getIdsServicios());
-                    f.setServicios(servicios);
-                    int total = servicios.stream().mapToInt(ServicioVeterinario::getCosto).sum();
-                    f.setTotal(total);
-                    return facturaRepo.save(f);
-                })
-                .orElse(null);
-    }
-
-    public Factura pagarFactura(Long id) {
-        Optional<Factura> optFactura = facturaRepo.findById(id);
-        if (optFactura.isPresent()) {
-            Factura f = optFactura.get();
-            f.setTotal(0); // Simulación de pago
-            return facturaRepo.save(f);
-        }
-        return null;
+    public Factura guardar(Factura factura) {
+        return facturaRepository.save(factura);
     }
 
     public void eliminar(Long id) {
-        facturaRepo.deleteById(id);
+        facturaRepository.deleteById(id);
+    }
+
+    public Factura crearFactura(String cliente, List<Long> idsServicios) {
+        List<ServicioVeterinario> servicios = servicioVeterinarioRepository.findAllById(idsServicios);
+        Factura nuevaFactura = new Factura();
+        nuevaFactura.setCliente(cliente);
+        nuevaFactura.setServicios(servicios);
+        return facturaRepository.save(nuevaFactura);
+    }
+
+    public String resumenFactura(Factura nuevaFactura) {
+        double total = nuevaFactura.getServicios().stream().mapToDouble(ServicioVeterinario::getCosto).sum();
+        return String.format("Cliente: %s - Servicios: %s - Total: %.2f",
+                nuevaFactura.getCliente(),
+                nuevaFactura.getServicios().stream().map(ServicioVeterinario::getId).toList(),
+                total);
     }
 }

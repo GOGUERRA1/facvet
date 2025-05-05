@@ -1,10 +1,11 @@
 package com.example.facvet.model;
 
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 @Entity
 @Table(name = "servicios_veterinarios")
-public class ServicioVeterinario {
+public class ServicioVeterinario extends RepresentationModel<ServicioVeterinario> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
